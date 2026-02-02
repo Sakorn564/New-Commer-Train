@@ -112,6 +112,10 @@
             background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
         }
 
+        .result-box.duplicate {
+            background: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%);
+        }
+
         @keyframes slideIn {
             from {
                 opacity: 0;
@@ -135,6 +139,16 @@
         .result-item strong {
             display: inline-block;
             width: 150px;
+        }
+
+        .duplicate-warning {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border: 2px solid rgba(255, 255, 255, 0.5);
         }
 
         .manual-input-section {
@@ -208,6 +222,91 @@
             display: none;
         }
 
+        .saved-databases {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .saved-databases h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .database-item {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+
+        .database-item:hover {
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .database-item.active {
+            border-color: #38ef7d;
+            background: #f0fff4;
+        }
+
+        .database-info {
+            flex: 1;
+        }
+
+        .database-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 3px;
+        }
+
+        .database-count {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .database-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.9em;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .btn-load {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-load:hover {
+            background: #5568d3;
+        }
+
+        .btn-delete {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #ee5a6f;
+        }
+
         .btn {
             padding: 15px 30px;
             font-size: 1.1em;
@@ -259,6 +358,18 @@
             padding: 12px 25px;
         }
 
+        .btn-info {
+            background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+            color: white;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(58, 123, 213, 0.4);
+        }
+
         .data-table {
             width: 100%;
             margin-top: 20px;
@@ -288,6 +399,10 @@
             background: #f0f4ff;
         }
 
+        tr.duplicate-row {
+            background: #fff3cd;
+        }
+
         .status-badge {
             padding: 5px 15px;
             border-radius: 20px;
@@ -305,9 +420,14 @@
             color: #000;
         }
 
+        .status-duplicate {
+            background: #ff9800;
+            color: white;
+        }
+
         .stats {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 15px;
             margin-bottom: 20px;
         }
@@ -318,6 +438,10 @@
             padding: 20px;
             border-radius: 10px;
             text-align: center;
+        }
+
+        .stat-card.warning {
+            background: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%);
         }
 
         .stat-number {
@@ -371,6 +495,10 @@
             border-left: 5px solid #ffc107;
         }
 
+        .notification.duplicate {
+            border-left: 5px solid #ff9800;
+        }
+
         .bad-id-warning {
             background: #fff3cd;
             border-left: 5px solid #ffc107;
@@ -387,13 +515,20 @@
             margin-top: 10px;
         }
 
+        .empty-state {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-style: italic;
+        }
+
         @media (max-width: 768px) {
             .main-section {
                 grid-template-columns: 1fr;
             }
 
             .stats {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr 1fr;
             }
 
             .manual-input-group {
@@ -453,6 +588,9 @@
                         <strong>เวลา:</strong>
                         <span id="resultTime">-</span>
                     </div>
+                    <div class="duplicate-warning" id="duplicateWarning" style="display: none;">
+                        ⚠️ ซ้ำ! เคยสแกนแล้วเมื่อ <span id="previousScanTime">-</span>
+                    </div>
                 </div>
 
                 <!-- Manual Input Section -->
@@ -471,7 +609,16 @@
 
             <!-- Upload Section -->
             <div class="card">
-                <h2>📤 อัปโหลดฐานข้อมูล</h2>
+                <h2>📤 จัดการฐานข้อมูล</h2>
+                
+                <!-- Saved Databases -->
+                <div class="saved-databases" id="savedDatabasesContainer">
+                    <h4>💾 ฐานข้อมูลที่บันทึกไว้</h4>
+                    <div id="savedDatabasesList">
+                        <div class="empty-state">ยังไม่มีฐานข้อมูลที่บันทึกไว้</div>
+                    </div>
+                </div>
+
                 <div class="upload-area" onclick="document.getElementById('fileInput').click()">
                     <div class="upload-icon">📁</div>
                     <h3>คลิกเพื่ออัปโหลดไฟล์ Excel</h3>
@@ -491,6 +638,10 @@
                         📋 ใช้ข้อมูลตัวอย่าง
                     </button>
                 </div>
+                
+                <button class="btn btn-info" onclick="saveCurrentDatabase()" id="saveDbBtn" style="display: none;">
+                    💾 บันทึกฐานข้อมูลปัจจุบัน
+                </button>
             </div>
         </div>
 
@@ -500,7 +651,11 @@
             <div class="stats">
                 <div class="stat-card">
                     <div class="stat-number" id="totalScans">0</div>
-                    <div class="stat-label">ครั้งที่สแกน</div>
+                    <div class="stat-label">ครั้งที่สแกน (ไม่ซ้ำ)</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-number" id="duplicateScans">0</div>
+                    <div class="stat-label">สแกนซ้ำ</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number" id="databaseCount">0</div>
@@ -551,7 +706,10 @@
         // Global Variables
         let database = [];
         let scannedRecords = [];
+        let duplicateScans = [];
         let currentBadId = '';
+        let savedDatabases = [];
+        let currentDatabaseName = '';
 
         // Sample Data
         const sampleData = [
@@ -567,7 +725,9 @@
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             loadFromLocalStorage();
+            loadSavedDatabases();
             updateStats();
+            updateSavedDatabasesList();
             
             // Setup file input
             document.getElementById('fileInput').addEventListener('change', handleFileUpload);
@@ -589,11 +749,116 @@
             });
         });
 
+        // Save current database
+        function saveCurrentDatabase() {
+            if (database.length === 0) {
+                showNotification('❌ ไม่มีข้อมูลให้บันทึก', 'error');
+                return;
+            }
+
+            const dbName = prompt('กรุณาตั้งชื่อฐานข้อมูล:', currentDatabaseName || 'ฐานข้อมูล ' + new Date().toLocaleDateString('th-TH'));
+            
+            if (!dbName) return;
+
+            const dbId = Date.now().toString();
+            const newDatabase = {
+                id: dbId,
+                name: dbName,
+                data: [...database],
+                count: database.length,
+                savedDate: new Date().toLocaleString('th-TH')
+            };
+
+            // Check if name exists
+            const existingIndex = savedDatabases.findIndex(db => db.name === dbName);
+            if (existingIndex >= 0) {
+                if (confirm('ชื่อนี้มีอยู่แล้ว ต้องการเขียนทับหรือไม่?')) {
+                    savedDatabases[existingIndex] = newDatabase;
+                } else {
+                    return;
+                }
+            } else {
+                savedDatabases.push(newDatabase);
+            }
+
+            currentDatabaseName = dbName;
+            localStorage.setItem('savedDatabases', JSON.stringify(savedDatabases));
+            updateSavedDatabasesList();
+            showNotification('✅ บันทึกฐานข้อมูลสำเร็จ!', 'success');
+        }
+
+        // Load saved database
+        function loadSavedDatabase(dbId) {
+            const db = savedDatabases.find(d => d.id === dbId);
+            if (!db) return;
+
+            database = [...db.data];
+            currentDatabaseName = db.name;
+            saveToLocalStorage();
+            updateStats();
+            updateSavedDatabasesList();
+            
+            document.getElementById('uploadStatus').innerHTML = 
+                `✅ โหลดฐานข้อมูล "<strong>${db.name}</strong>" สำเร็จ: ${db.count} รายการ`;
+            
+            showNotification('✅ โหลดฐานข้อมูลสำเร็จ!', 'success');
+        }
+
+        // Delete saved database
+        function deleteSavedDatabase(dbId) {
+            const db = savedDatabases.find(d => d.id === dbId);
+            if (!db) return;
+
+            if (!confirm(`ต้องการลบฐานข้อมูล "${db.name}" หรือไม่?`)) return;
+
+            savedDatabases = savedDatabases.filter(d => d.id !== dbId);
+            localStorage.setItem('savedDatabases', JSON.stringify(savedDatabases));
+            updateSavedDatabasesList();
+            showNotification('✅ ลบฐานข้อมูลสำเร็จ!', 'success');
+        }
+
+        // Update saved databases list
+        function updateSavedDatabasesList() {
+            const container = document.getElementById('savedDatabasesList');
+            const saveBtn = document.getElementById('saveDbBtn');
+            
+            // Show/hide save button
+            saveBtn.style.display = database.length > 0 ? 'block' : 'none';
+
+            if (savedDatabases.length === 0) {
+                container.innerHTML = '<div class="empty-state">ยังไม่มีฐานข้อมูลที่บันทึกไว้</div>';
+                return;
+            }
+
+            container.innerHTML = savedDatabases.map(db => `
+                <div class="database-item ${currentDatabaseName === db.name ? 'active' : ''}">
+                    <div class="database-info">
+                        <div class="database-name">${db.name}</div>
+                        <div class="database-count">${db.count} รายการ • ${db.savedDate}</div>
+                    </div>
+                    <div class="database-actions">
+                        <button class="btn-small btn-load" onclick="loadSavedDatabase('${db.id}')">โหลด</button>
+                        <button class="btn-small btn-delete" onclick="deleteSavedDatabase('${db.id}')">ลบ</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Load saved databases from localStorage
+        function loadSavedDatabases() {
+            const saved = localStorage.getItem('savedDatabases');
+            if (saved) {
+                savedDatabases = JSON.parse(saved);
+            }
+        }
+
         // Load sample data
         function loadSampleData() {
             database = [...sampleData];
+            currentDatabaseName = 'ข้อมูลตัวอย่าง';
             saveToLocalStorage();
             updateStats();
+            updateSavedDatabasesList();
             
             document.getElementById('uploadStatus').innerHTML = 
                 `✅ โหลดข้อมูลตัวอย่างสำเร็จ: <strong>${database.length} รายการ</strong>`;
@@ -627,12 +892,62 @@
                 return;
             }
 
-            // Create record
-            createRecord(person.empId, person.name, person.badId, 'auto');
+            // Check for duplicate (same employee ID scanned today)
+            const today = new Date().toLocaleDateString('th-TH');
+            const existingRecord = scannedRecords.find(r => 
+                r.empId === person.empId && r.date === today
+            );
+
+            if (existingRecord) {
+                // Duplicate scan - show but don't count
+                showDuplicateResult(person, existingRecord);
+                
+                // Add to duplicate list
+                const now = new Date();
+                duplicateScans.push({
+                    empId: person.empId,
+                    name: person.name,
+                    badId: person.badId,
+                    date: now.toLocaleDateString('th-TH'),
+                    time: now.toLocaleTimeString('th-TH'),
+                    timestamp: now.getTime()
+                });
+                
+                saveToLocalStorage();
+                updateStats();
+            } else {
+                // New scan - create record
+                createRecord(person.empId, person.name, person.badId, 'auto');
+            }
+
             scanInput.value = '';
             
             // Refocus input
             setTimeout(() => scanInput.focus(), 100);
+        }
+
+        // Show duplicate result
+        function showDuplicateResult(person, existingRecord) {
+            document.getElementById('resultEmpId').textContent = person.empId;
+            document.getElementById('resultName').textContent = person.name;
+            document.getElementById('resultBadId').textContent = person.badId;
+            
+            const now = new Date();
+            document.getElementById('resultDate').textContent = now.toLocaleDateString('th-TH');
+            document.getElementById('resultTime').textContent = now.toLocaleTimeString('th-TH');
+            
+            // Show duplicate warning
+            document.getElementById('previousScanTime').textContent = 
+                `${existingRecord.date} เวลา ${existingRecord.time}`;
+            document.getElementById('duplicateWarning').style.display = 'block';
+            
+            const resultBox = document.getElementById('resultBox');
+            resultBox.classList.remove('error');
+            resultBox.classList.add('duplicate');
+            resultBox.classList.remove('show');
+            setTimeout(() => resultBox.classList.add('show'), 10);
+
+            showNotification(`⚠️ ซ้ำ! ${person.name} เคยสแกนแล้ว`, 'duplicate');
         }
 
         // Show manual input
@@ -662,8 +977,33 @@
                 return;
             }
 
-            // Create record with manual entry
-            createRecord(person.empId, person.name, currentBadId, 'manual');
+            // Check for duplicate
+            const today = new Date().toLocaleDateString('th-TH');
+            const existingRecord = scannedRecords.find(r => 
+                r.empId === person.empId && r.date === today
+            );
+
+            if (existingRecord) {
+                // Duplicate scan
+                showDuplicateResult(person, existingRecord);
+                
+                // Add to duplicate list
+                const now = new Date();
+                duplicateScans.push({
+                    empId: person.empId,
+                    name: person.name,
+                    badId: currentBadId,
+                    date: now.toLocaleDateString('th-TH'),
+                    time: now.toLocaleTimeString('th-TH'),
+                    timestamp: now.getTime()
+                });
+                
+                saveToLocalStorage();
+                updateStats();
+            } else {
+                // Create record with manual entry
+                createRecord(person.empId, person.name, currentBadId, 'manual');
+            }
             
             // Hide manual input section
             document.getElementById('manualInputSection').classList.remove('show');
@@ -725,8 +1065,12 @@
             document.getElementById('resultDate').textContent = record.date;
             document.getElementById('resultTime').textContent = record.time;
             
+            // Hide duplicate warning
+            document.getElementById('duplicateWarning').style.display = 'none';
+            
             const resultBox = document.getElementById('resultBox');
             resultBox.classList.remove('error');
+            resultBox.classList.remove('duplicate');
             resultBox.classList.remove('show');
             setTimeout(() => resultBox.classList.add('show'), 10);
         }
@@ -751,8 +1095,10 @@
                         badId: String(row['BAD ID'] || row['BadID'] || row['BADID'] || '').trim()
                     })).filter(item => item.empId && item.name);
 
+                    currentDatabaseName = file.name.replace(/\.[^/.]+$/, '');
                     saveToLocalStorage();
                     updateStats();
+                    updateSavedDatabasesList();
                     
                     document.getElementById('uploadStatus').innerHTML = 
                         `✅ อัปโหลดสำเร็จ: <strong>${database.length} รายการ</strong>`;
@@ -801,6 +1147,7 @@
         // Update statistics
         function updateStats() {
             document.getElementById('totalScans').textContent = scannedRecords.length;
+            document.getElementById('duplicateScans').textContent = duplicateScans.length;
             document.getElementById('databaseCount').textContent = database.length;
             
             const today = new Date().toLocaleDateString('th-TH');
@@ -871,20 +1218,32 @@
         // Local Storage
         function saveToLocalStorage() {
             localStorage.setItem('database', JSON.stringify(database));
+            localStorage.setItem('currentDatabaseName', currentDatabaseName);
             localStorage.setItem('scannedRecords', JSON.stringify(scannedRecords));
+            localStorage.setItem('duplicateScans', JSON.stringify(duplicateScans));
         }
 
         function loadFromLocalStorage() {
             const savedDatabase = localStorage.getItem('database');
+            const savedDbName = localStorage.getItem('currentDatabaseName');
             const savedRecords = localStorage.getItem('scannedRecords');
+            const savedDuplicates = localStorage.getItem('duplicateScans');
             
             if (savedDatabase) {
                 database = JSON.parse(savedDatabase);
+            }
+
+            if (savedDbName) {
+                currentDatabaseName = savedDbName;
             }
             
             if (savedRecords) {
                 scannedRecords = JSON.parse(savedRecords);
                 updateTable();
+            }
+
+            if (savedDuplicates) {
+                duplicateScans = JSON.parse(savedDuplicates);
             }
         }
     </script>
