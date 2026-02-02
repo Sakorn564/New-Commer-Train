@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบสแกนและบันทึกข้อมูล</title>
+    <title>📱 ระบบสแกนและบันทึกข้อมูล</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
@@ -37,6 +37,10 @@
             color: #667eea;
             font-size: 2.5em;
             margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
         }
 
         .header p {
@@ -64,6 +68,9 @@
             font-size: 1.5em;
             border-bottom: 3px solid #667eea;
             padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .scan-section {
@@ -88,7 +95,6 @@
 
         .scan-icon {
             font-size: 5em;
-            color: #667eea;
             margin: 20px 0;
         }
 
@@ -172,17 +178,30 @@
             cursor: pointer;
             transition: all 0.3s;
             margin-bottom: 20px;
+            position: relative;
         }
 
         .upload-area:hover {
             background: #f0f4ff;
             border-color: #764ba2;
+            transform: translateY(-2px);
         }
 
         .upload-icon {
             font-size: 4em;
-            color: #667eea;
             margin-bottom: 15px;
+        }
+
+        .upload-area h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        .upload-area p {
+            color: #666;
+            margin-top: 10px;
+            line-height: 1.6;
         }
 
         input[type="file"] {
@@ -361,6 +380,13 @@
             color: #856404;
         }
 
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
         @media (max-width: 768px) {
             .main-section {
                 grid-template-columns: 1fr;
@@ -377,6 +403,10 @@
             .btn {
                 width: 100%;
             }
+
+            .button-group {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -384,7 +414,9 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <h1>📱 ระบบสแกนและบันทึกข้อมูล</h1>
+            <h1>
+                📱 ระบบสแกนและบันทึกข้อมูล
+            </h1>
             <p>สแกนหมายเลข - บันทึกอัตโนมัติ - Export Excel</p>
         </div>
 
@@ -443,17 +475,22 @@
                 <div class="upload-area" onclick="document.getElementById('fileInput').click()">
                     <div class="upload-icon">📁</div>
                     <h3>คลิกเพื่ออัปโหลดไฟล์ Excel</h3>
-                    <p style="color: #666; margin-top: 10px;">
+                    <p>
                         รองรับไฟล์ .xlsx และ .xls<br>
-                        (ต้องมีคอลัมน์: รหัสพนักงาน, ชื่อ นามสกุล, BAD ID)
+                        (ต้องมีคอลัมน์: <strong>รหัสพนักงาน, ชื่อ นามสกุล, BAD ID</strong>)
                     </p>
                     <input type="file" id="fileInput" accept=".xlsx,.xls">
                 </div>
-                <div id="uploadStatus" style="text-align: center; color: #667eea; font-weight: bold;"></div>
+                <div id="uploadStatus" style="text-align: center; color: #667eea; font-weight: bold; margin-bottom: 15px;"></div>
 
-                <button class="btn btn-success" onclick="downloadTemplate()">
-                    📥 ดาวน์โหลดไฟล์ Excel ตัวอย่าง
-                </button>
+                <div class="button-group">
+                    <button class="btn btn-success" onclick="downloadTemplate()">
+                        📥 ดาวน์โหลดไฟล์ตัวอย่าง
+                    </button>
+                    <button class="btn btn-primary" onclick="loadSampleData()">
+                        📋 ใช้ข้อมูลตัวอย่าง
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -514,9 +551,18 @@
         // Global Variables
         let database = [];
         let scannedRecords = [];
-        let scanBuffer = '';
-        let scanTimeout = null;
         let currentBadId = '';
+
+        // Sample Data
+        const sampleData = [
+            { empId: '1000336245', name: 'เกศมิกา บุญส่ง', badId: '2600870898' },
+            { empId: '1000336239', name: 'เกศรินทร์ อันอิ่ม', badId: '2604470466' },
+            { empId: '1000336423', name: 'เกส เซียงงวง', badId: '2598123138' },
+            { empId: '1000336173', name: 'เขมจิรา ปลอดภา', badId: '3707100598' },
+            { empId: '1000336282', name: 'เจนจิรา สามารถ', badId: '3707307574' },
+            { empId: '1000336213', name: 'เนตรนภา แสงกล', badId: '2596799554' },
+            { empId: '1000336327', name: 'เนญจนาภรณ์ เวชรพรทวี', badId: '3711046486' }
+        ];
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
@@ -542,6 +588,18 @@
                 }
             });
         });
+
+        // Load sample data
+        function loadSampleData() {
+            database = [...sampleData];
+            saveToLocalStorage();
+            updateStats();
+            
+            document.getElementById('uploadStatus').innerHTML = 
+                `✅ โหลดข้อมูลตัวอย่างสำเร็จ: <strong>${database.length} รายการ</strong>`;
+            
+            showNotification('✅ โหลดข้อมูลตัวอย่างสำเร็จ!', 'success');
+        }
 
         // Process scan
         function processScan(scannedId) {
@@ -696,8 +754,8 @@
                     saveToLocalStorage();
                     updateStats();
                     
-                    document.getElementById('uploadStatus').textContent = 
-                        `✅ อัปโหลดสำเร็จ: ${database.length} รายการ`;
+                    document.getElementById('uploadStatus').innerHTML = 
+                        `✅ อัปโหลดสำเร็จ: <strong>${database.length} รายการ</strong>`;
                     
                     showNotification('✅ อัปโหลดฐานข้อมูลสำเร็จ!', 'success');
                 } catch (error) {
@@ -784,25 +842,12 @@
 
         // Download template
         function downloadTemplate() {
-            const templateData = [
-                { 
-                    'รหัสพนักงาน': '1000336245', 
-                    'ชื่อ นามสกุล': 'เกศมิกา บุญส่ง', 
-                    'BAD ID': '2600870898' 
-                },
-                { 
-                    'รหัสพนักงาน': '1000336239', 
-                    'ชื่อ นามสกุล': 'เกศรินทร์ อันอิ่ม', 
-                    'BAD ID': '2604470466' 
-                },
-                { 
-                    'รหัสพนักงาน': '1000336423', 
-                    'ชื่อ นามสกุล': 'เกส เซียงงวง', 
-                    'BAD ID': '2598123138' 
-                }
-            ];
-
-            const ws = XLSX.utils.json_to_sheet(templateData);
+            const ws = XLSX.utils.json_to_sheet(sampleData.map(item => ({
+                'รหัสพนักงาน': item.empId,
+                'ชื่อ นามสกุล': item.name,
+                'BAD ID': item.badId
+            })));
+            
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "ฐานข้อมูล");
 
