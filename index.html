@@ -370,6 +370,18 @@
             box-shadow: 0 5px 20px rgba(58, 123, 213, 0.4);
         }
 
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(238, 90, 111, 0.4);
+        }
+
         .data-table {
             width: 100%;
             margin-top: 20px;
@@ -515,11 +527,130 @@
             margin-top: 10px;
         }
 
+        .button-group-three {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
         .empty-state {
             text-align: center;
             padding: 20px;
             color: #999;
             font-style: italic;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal.show {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .modal-icon {
+            font-size: 3em;
+        }
+
+        .modal-header h3 {
+            color: #667eea;
+            font-size: 1.5em;
+        }
+
+        .modal-body {
+            margin: 20px 0;
+        }
+
+        .clear-option {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border: 2px solid #e0e0e0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .clear-option:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .clear-option input[type="checkbox"] {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .clear-option label {
+            cursor: pointer;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .clear-option p {
+            margin-top: 5px;
+            margin-left: 28px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-footer button {
+            flex: 1;
         }
 
         @media (max-width: 768px) {
@@ -539,8 +670,13 @@
                 width: 100%;
             }
 
-            .button-group {
+            .button-group, .button-group-three {
                 grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 20px;
             }
         }
     </style>
@@ -639,9 +775,14 @@
                     </button>
                 </div>
                 
-                <button class="btn btn-info" onclick="saveCurrentDatabase()" id="saveDbBtn" style="display: none;">
-                    💾 บันทึกฐานข้อมูลปัจจุบัน
-                </button>
+                <div class="button-group">
+                    <button class="btn btn-info" onclick="saveCurrentDatabase()" id="saveDbBtn" style="display: none;">
+                        💾 บันทึกฐานข้อมูลปัจจุบัน
+                    </button>
+                    <button class="btn btn-danger" onclick="showClearDataModal()">
+                        🗑️ ล้างข้อมูล
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -671,9 +812,17 @@
         <!-- Data Table -->
         <div class="card">
             <h2>📋 รายการที่สแกน</h2>
-            <button class="btn btn-success" onclick="exportToExcel()">
-                📊 Export ไปยัง Excel
-            </button>
+            <div class="button-group-three">
+                <button class="btn btn-success" onclick="exportToExcel()">
+                    📊 Export Excel
+                </button>
+                <button class="btn btn-primary" onclick="exportScannedRecords()">
+                    📥 Export รายการสแกน
+                </button>
+                <button class="btn btn-danger" onclick="clearScannedRecordsOnly()">
+                    🗑️ ล้างรายการสแกน
+                </button>
+            </div>
             <div class="data-table">
                 <table>
                     <thead>
@@ -695,6 +844,51 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clear Data Modal -->
+    <div class="modal" id="clearDataModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-icon">🗑️</div>
+                <h3>ล้างข้อมูล</h3>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 15px; color: #666;">เลือกข้อมูลที่ต้องการล้าง:</p>
+                
+                <div class="clear-option" onclick="toggleCheckbox('clearScanned')">
+                    <input type="checkbox" id="clearScanned" checked>
+                    <label for="clearScanned">ล้างรายการที่สแกน</label>
+                    <p>ลบรายการที่สแกนทั้งหมด (รวมสแกนซ้ำ)</p>
+                </div>
+
+                <div class="clear-option" onclick="toggleCheckbox('clearDatabase')">
+                    <input type="checkbox" id="clearDatabase">
+                    <label for="clearDatabase">ล้างฐานข้อมูลปัจจุบัน</label>
+                    <p>ลบฐานข้อมูลพนักงานที่กำลังใช้งาน</p>
+                </div>
+
+                <div class="clear-option" onclick="toggleCheckbox('clearSavedDb')">
+                    <input type="checkbox" id="clearSavedDb">
+                    <label for="clearSavedDb">ล้างฐานข้อมูลที่บันทึกไว้</label>
+                    <p>ลบฐานข้อมูลที่บันทึกไว้ทั้งหมด</p>
+                </div>
+
+                <div class="clear-option" onclick="toggleCheckbox('clearAll')">
+                    <input type="checkbox" id="clearAll">
+                    <label for="clearAll">ล้างข้อมูลทั้งหมด</label>
+                    <p style="color: #d32f2f; font-weight: bold;">⚠️ ลบข้อมูลทั้งหมดในระบบ (ไม่สามารถกู้คืนได้)</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeClearDataModal()" style="width: auto;">
+                    ✕ ยกเลิก
+                </button>
+                <button class="btn btn-danger" onclick="confirmClearData()" style="width: auto;">
+                    🗑️ ยืนยันล้างข้อมูล
+                </button>
             </div>
         </div>
     </div>
@@ -747,7 +941,119 @@
                     submitManualInput();
                 }
             });
+
+            // Clear all checkbox handler
+            document.getElementById('clearAll').addEventListener('change', function(e) {
+                if (e.target.checked) {
+                    document.getElementById('clearScanned').checked = true;
+                    document.getElementById('clearDatabase').checked = true;
+                    document.getElementById('clearSavedDb').checked = true;
+                }
+            });
         });
+
+        // Toggle checkbox when clicking on div
+        function toggleCheckbox(id) {
+            const checkbox = document.getElementById(id);
+            checkbox.checked = !checkbox.checked;
+            
+            // Handle "clear all" logic
+            if (id !== 'clearAll' && !checkbox.checked) {
+                document.getElementById('clearAll').checked = false;
+            }
+        }
+
+        // Show clear data modal
+        function showClearDataModal() {
+            document.getElementById('clearDataModal').classList.add('show');
+        }
+
+        // Close clear data modal
+        function closeClearDataModal() {
+            document.getElementById('clearDataModal').classList.remove('show');
+            // Reset checkboxes
+            document.getElementById('clearScanned').checked = true;
+            document.getElementById('clearDatabase').checked = false;
+            document.getElementById('clearSavedDb').checked = false;
+            document.getElementById('clearAll').checked = false;
+        }
+
+        // Confirm clear data
+        function confirmClearData() {
+            const clearScanned = document.getElementById('clearScanned').checked;
+            const clearDatabase = document.getElementById('clearDatabase').checked;
+            const clearSavedDb = document.getElementById('clearSavedDb').checked;
+            const clearAll = document.getElementById('clearAll').checked;
+
+            if (!clearScanned && !clearDatabase && !clearSavedDb && !clearAll) {
+                showNotification('⚠️ กรุณาเลือกข้อมูลที่ต้องการล้าง', 'warning');
+                return;
+            }
+
+            let message = 'ต้องการล้าง';
+            const items = [];
+            if (clearScanned) items.push('รายการที่สแกน');
+            if (clearDatabase) items.push('ฐานข้อมูลปัจจุบัน');
+            if (clearSavedDb) items.push('ฐานข้อมูลที่บันทึกไว้');
+            if (clearAll) items.push('ข้อมูลทั้งหมด');
+            
+            message += items.join(', ') + ' หรือไม่?\n\n⚠️ การดำเนินการนี้ไม่สามารถยกเลิกได้';
+
+            if (!confirm(message)) return;
+
+            // Clear selected data
+            if (clearScanned || clearAll) {
+                scannedRecords = [];
+                duplicateScans = [];
+            }
+
+            if (clearDatabase || clearAll) {
+                database = [];
+                currentDatabaseName = '';
+                document.getElementById('uploadStatus').innerHTML = '';
+            }
+
+            if (clearSavedDb || clearAll) {
+                savedDatabases = [];
+                localStorage.removeItem('savedDatabases');
+            }
+
+            // Save and update
+            saveToLocalStorage();
+            updateStats();
+            updateTable();
+            updateSavedDatabasesList();
+            closeClearDataModal();
+
+            showNotification('✅ ล้างข้อมูลสำเร็จ!', 'success');
+        }
+
+        // Clear scanned records only (quick button)
+        function clearScannedRecordsOnly() {
+            if (scannedRecords.length === 0 && duplicateScans.length === 0) {
+                showNotification('⚠️ ไม่มีรายการที่สแกนให้ล้าง', 'warning');
+                return;
+            }
+
+            if (!confirm('ต้องการล้างรายการที่สแกนทั้งหมดหรือไม่?\n\n(ฐานข้อมูลพนักงานจะยังคงอยู่)')) return;
+
+            scannedRecords = [];
+            duplicateScans = [];
+            saveToLocalStorage();
+            updateStats();
+            updateTable();
+
+            showNotification('✅ ล้างรายการสแกนสำเร็จ!', 'success');
+        }
+
+        // Export scanned records
+        function exportScannedRecords() {
+            if (scannedRecords.length === 0) {
+                showNotification('⚠️ ไม่มีรายการให้ Export', 'warning');
+                return;
+            }
+            exportToExcel();
+        }
 
         // Save current database
         function saveCurrentDatabase() {
